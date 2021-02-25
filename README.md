@@ -6,6 +6,7 @@ This tool just uses NAudio to initialize the mic, and then once SteamVR starts, 
 
 # Releases
 Precompiled binaries are available [here](https://github.com/i386sh/linktool/releases)
+*if there are any issues **please** let me know, this tool was really quickly built.* 
 
 # Building
 If you wanna build it just download the repo and then install NAudio from NuGet. Simple stuff.
