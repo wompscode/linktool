@@ -14,53 +14,73 @@ namespace LinkTool
 {
     public partial class Form1 : Form
     {
-        public int devnum = -999;
+        public int devnum = -5; // Default is -5 so in the event that the Oculus headset mic isn't detected, -5 will remain to be the value so it can be detected.
+        public WaveIn waveIn;
+        public bool started;
         public Form1()
         {
             InitializeComponent();
         }
+        public void StartMic()
+        {
+            waveIn = new WaveIn();
+            waveIn.DeviceNumber = devnum;
+            // Set device channels and samplerate
+            int sampleRate = 48000; // 48000 Hz
+            int channels = 1; // mono
+            waveIn.WaveFormat = new WaveFormat(sampleRate, channels);
+            waveIn.StartRecording();
+        }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            int a = WaveIn.DeviceCount;
-            for (int i = 0; i < a; i++)
+            for (int i = 0; i < WaveIn.DeviceCount; i++)
             {
-                WaveInCapabilities deviceInfo = WaveIn.GetCapabilities(i);
-                if(deviceInfo.ProductName.Contains("Oculus"))
+                if(WaveIn.GetCapabilities(i).ProductName.Contains("Oculus")) // This shouldn't conflict with any other input devices as no other audio INPUT devices should have Oculus in the ProductName
                 {
                     devnum = i;
+                    break; // Don't need to go through the entire loop if we've found it already!
                 }
-
+            }
+            switch(devnum)
+            {
+                case -5:
+                    MessageBox.Show("Oculus Headset Mic Virtual Device not found. Is Oculus installed? Is the device disabled?");
+                break;
+                default:
+                    StartMic();
+                    timer1.Start();
+                    button1.Text = "Stop";
+                    started = true;
+                break;
             }
         }
-        public WaveIn waveIn;
-        public bool rn;
+
         private void button1_Click(object sender, EventArgs e)
         {
-            if(devnum == -999)
+            switch(devnum)
             {
-                MessageBox.Show("Oculus Headset mic cannot be found. Are you sure you have Oculus software installed?");
+                case -5:
+                    MessageBox.Show("Oculus Headset Mic Virtual Device not found. Is Oculus installed? Is the device disabled?");
+                break;
+                default:
+                    switch(started)
+                    {
+                        case true:
+                            waveIn.StopRecording();
+                            timer1.Stop();
+                            button1.Text = "Start";
+                            started = false;
+                        break;
+                        case false:
+                            StartMic();
+                            timer1.Start();
+                            button1.Text = "Stop";
+                            started = true;
+                            break;
+                    }
+                break;
             }
-            if(rn == true)
-            {
-                waveIn.StopRecording();
-                timer1.Stop();
-                button1.Text = "Start";
-                rn = false;
-            } else
-            {
-                waveIn = new WaveIn();
-                waveIn.DeviceNumber = devnum;
-                // Set device channels and samplerate
-                int sampleRate = 48000; // 48000 Hz
-                int channels = 1; // mono
-                waveIn.WaveFormat = new WaveFormat(sampleRate, channels);
-                waveIn.StartRecording();
-                timer1.Start(); 
-                button1.Text = "Stop";
-                rn = true;
-            }
-
         }
 
         private void timer1_Tick(object sender, EventArgs e)
